@@ -1,16 +1,22 @@
 import strformat, strutils
 
 type
-  tBinaryRange = range[0.0..255.0]
+  tPercentage = range[0.0..100.0]
+  tBinaryRange* = range[0.0..255.0]
   tHue* = range[0.0..360.0]
   tRGB* = tuple[red: tBinaryRange, green: tBinaryRange, blue: tBinaryRange]
   tHSV* = tuple[hue: tHue, saturation: tBinaryRange, value: tBinaryRange]
+  tCMYK* = tuple[cyan: tPercentage, magenta: tPercentage, yellow: tPercentage, keyPlate: tPercentage]
 
   tColor* = object
     hsv*: tHSV
 
+proc cmyk* (color: tColor): tCMYK
+proc cmyk* (rgb: tRGB): tCMYK
 proc hsv* (rgb: tRGB): tHSV
+proc hsv* (cmyk: tCMYK): tHSV
 proc rgb* (color: tColor): tRGB
+proc rgb* (cmyk: tCMYK): tRGB
 
 proc newColor* (hue: tHue, saturation, value: tBinaryRange): tColor =
   let hsv: tHSV = (hue, saturation, value)
@@ -23,6 +29,21 @@ proc `$`* (color: tColor): string =
   var
     (red, green, blue) = rgb(color)
   result = fmt"""#{red.int.toHex(2)}{green.int.toHex(2)}{blue.int.toHex(2)}"""
+
+
+proc cmyk* (color: tColor): tCMYK =
+  result = color.rgb.cmyk
+
+proc cmyk* (rgb: tRGB): tCMYK =
+  let
+    red = rgb.red / 255
+    green = rgb.green / 255
+    blue = rgb.blue / 255
+    keyPlate: tPercentage = min(1-red, min(1-green, 1-blue))
+    cyan: tPercentage = (1-red-keyPlate) / (1-keyPlate) * 100
+    magenta: tPercentage = (1-green-keyPlate) / (1-keyPlate) * 100
+    yellow: tPercentage = (1-blue-keyPlate) / (1-keyPlate) * 100
+  result = (cyan, magenta, yellow, keyPlate)
 
 proc hsv* (rgb: tRGB): tHSV =
   let
@@ -46,6 +67,16 @@ proc hsv* (rgb: tRGB): tHSV =
     value: tBinaryRange = maxElem
 
   result = (hue, saturation, value)
+
+proc hsv* (cmyk: tCMYK): tHSV =
+  result = cmyk.rgb.hsv
+
+proc rgb* (cmyk: tCMYK): tRGB =
+  let
+    red: tBinaryRange = (1 - min(1, cmyk.cyan / 100 * (1 - cmyk.keyPlate) + cmyk.keyPlate)) * 255.0
+    green: tBinaryRange = (1 - min(1, cmyk.magenta / 100 * (1 - cmyk.keyPlate) + cmyk.keyPlate)) * 255.0
+    blue: tBinaryRange = (1 - min(1, cmyk.yellow / 100 * (1 - cmyk.keyPlate) + cmyk.keyPlate)) * 255.0
+  result = (red, green, blue)
 
 proc rgb* (color: tColor): tRGB =
   var

@@ -1,14 +1,22 @@
 import Palette/color
-from Palette/constantColor import black, dimgray, gray
+import nigui
 
-let myColor = newColor(100, 100, 100)
+proc gui(hue: tHue, saturation: tBinaryRange, value: tBinaryRange): int =
+  let color = newColor(hue, saturation, value)
+  app.init()
+  let rgb = color.rgb
+  let control = newControl()
+  control.widthMode = WidthMode_Fill
+  control.heightMode = HeightMode_Fill
+  control.onDraw = proc (event: DrawEvent) =
+    let canvas = event.control.canvas
+    canvas.areaColor = nigui.rgb(rgb.red.byte, rgb.green.byte, rgb.blue.byte)
+    canvas.fill()
+  let window = newWindow($color)
+  window.add(control)
+  window.show()
+  app.run()
 
-echo myColor
-echo myColor.rgb
-echo myColor.hsv
-
-echo black
-echo dimgray
-echo dimgray.rgb
-echo gray
-echo gray.rgb
+when isMainModule:
+  import cligen
+  dispatch(gui)
