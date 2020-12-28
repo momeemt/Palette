@@ -1,7 +1,22 @@
-# This is just an example to get you started. A typical library package
-# exports the main API in this file. Note that you cannot rename this file
-# but you can remove it if you wish.
+import Palette/color
+import nigui
 
-proc add*(x, y: int): int =
-  ## Adds two files together.
-  return x + y
+proc gui(hue: tHue, saturation: tBinaryRange, value: tBinaryRange): int =
+  let color = newColor(hue, saturation, value)
+  app.init()
+  let rgb = color.rgb
+  let control = newControl()
+  control.widthMode = WidthMode_Fill
+  control.heightMode = HeightMode_Fill
+  control.onDraw = proc (event: DrawEvent) =
+    let canvas = event.control.canvas
+    canvas.areaColor = nigui.rgb(rgb.red.byte, rgb.green.byte, rgb.blue.byte)
+    canvas.fill()
+  let window = newWindow($color)
+  window.add(control)
+  window.show()
+  app.run()
+
+when isMainModule:
+  import cligen
+  dispatch(gui)
