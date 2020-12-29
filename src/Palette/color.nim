@@ -1,7 +1,7 @@
 import strformat, strutils
 
 type
-  tPercentage = range[0.0..100.0]
+  tPercentage* = range[0.0..100.0]
   tBinaryRange* = range[0.0..255.0]
   tHue* = range[0.0..360.0]
   tRGB* = tuple[red: tBinaryRange, green: tBinaryRange, blue: tBinaryRange]
@@ -30,6 +30,12 @@ proc `$`* (color: tColor): string =
     (red, green, blue) = rgb(color)
   result = fmt"""#{red.int.toHex(2)}{green.int.toHex(2)}{blue.int.toHex(2)}"""
 
+proc `+`* (color: tColor, hsv: tHSV): tColor =
+  let
+    newHue: tHue = color.hsv.hue + hsv.hue
+    newSaturation: tBinaryRange = color.hsv.saturation + hsv.saturation
+    newValue: tBinaryRange = color.hsv.value + hsv.value
+  result = newColor(newHue, newSaturation, newValue)
 
 proc cmyk* (color: tColor): tCMYK =
   result = color.rgb.cmyk
