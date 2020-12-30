@@ -1,4 +1,4 @@
-import strformat, strutils
+import strformat, math, strutils
 
 type
   tPercentage* = range[0.0..100.0]
@@ -12,12 +12,17 @@ type
     hsv*: tHSV
 
 proc cmyk* (color: tColor): tCMYK
+proc cmyk* (hsv: tHSV): tCMYK
 proc cmyk* (rgb: tRGB): tCMYK
+proc cmyk* (hex: string): tCMYK
+proc hsv* (color: tColor): tHSV
 proc hsv* (rgb: tRGB): tHSV
 proc hsv* (cmyk: tCMYK): tHSV
+proc hsv* (hex: string): tHSV
 proc rgb* (color: tColor): tRGB
 proc rgb* (cmyk: tCMYK): tRGB
 proc rgb* (hsv: tHSV): tRGB
+proc rgb* (hex: string): tRGB
 proc hex* (color: tColor): string
 proc hex* (hsv: tHSV): string
 proc hex* (rgb: tRGB): string
@@ -34,6 +39,9 @@ proc newRGB* (red, green, blue: tBinaryRange): tRGB =
   let rgb: tRGB = (red: red, green: green, blue: blue)
   result = rgb
 
+proc round* (rgb: tRGB): tRGB =
+  result = newRGB(rgb.red.round, rgb.green.round, rgb.blue.round)
+
 proc `$`* (color: tColor): string =
   result = color.hex
 
@@ -47,6 +55,9 @@ proc `+`* (color: tColor, hsv: tHSV): tColor =
 proc cmyk* (color: tColor): tCMYK =
   result = color.rgb.cmyk
 
+proc cmyk* (hsv: tHSV): tCMYK =
+  result = hsv.rgb.cmyk
+
 proc cmyk* (rgb: tRGB): tCMYK =
   let
     red = rgb.red / 255
@@ -57,6 +68,12 @@ proc cmyk* (rgb: tRGB): tCMYK =
     magenta: tPercentage = (1-green-keyPlate) / (1-keyPlate) * 100
     yellow: tPercentage = (1-blue-keyPlate) / (1-keyPlate) * 100
   result = (cyan, magenta, yellow, keyPlate)
+
+proc cmyk* (hex: string): tCMYK =
+  result = hex.rgb.cmyk
+
+proc hsv* (color: tColor): tHSV =
+  result = color.hsv
 
 proc hsv* (rgb: tRGB): tHSV =
   let
@@ -83,6 +100,9 @@ proc hsv* (rgb: tRGB): tHSV =
 
 proc hsv* (cmyk: tCMYK): tHSV =
   result = cmyk.rgb.hsv
+
+proc hsv* (hex: string): tHSV =
+  result = hex.rgb.hsv
 
 proc rgb* (cmyk: tCMYK): tRGB =
   let
@@ -127,6 +147,13 @@ proc rgb* (hsv: tHSV): tRGB =
 
 proc rgb* (color: tColor): tRGB =
   result = color.hsv.rgb
+
+proc rgb* (hex: string): tRGB =
+  let
+    red: tBinaryRange = hex[1..2].parseFloat
+    green: tBinaryRange = hex[3..4].parseFloat
+    blue: tBinaryRange = hex[5..6].parseFloat
+  result = newRGB(red, green, blue)
 
 proc hex* (color: tColor): string =
   result = color.hsv.rgb.hex
