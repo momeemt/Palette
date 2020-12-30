@@ -30,6 +30,10 @@ proc newColor* (hue: tHue, saturation, value: tBinaryRange): tColor =
 proc newColor* (rgb: tRGB): tColor =
   result = tColor(hsv: hsv(rgb))
 
+proc newRGB* (red, green, blue: tBinaryRange): tRGB =
+  let rgb: tRGB = (red: red, green: green, blue: blue)
+  result = rgb
+
 proc `$`* (color: tColor): string =
   result = color.hex
 

@@ -52,7 +52,7 @@ const
   lightcyan* = newColor(180.0, 12.0, 100.0)
   cyan* = newColor(180.0, 100.0, 100.0)
   aqua* = newColor(180.0, 100.0, 100.0)
-  turquoise* = newColor(174.0, 71.0, 87.0)
+  turquoise* = newColor(174.0, 71.0, 88.0)
   mediumturquoise* = newColor(177.0, 65.0, 81.0)
   darkturquoise* = newColor(180.0, 100.0, 81.0)
   lightseagreen* = newColor(176.0, 82.0, 69.0)
