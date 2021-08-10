@@ -1,26 +1,14 @@
 import unittest
-import Palette
+import Palette/[color, constantColor]
 
-suite "color type":
-  setup:
-    var myColor = tColor(hue: 20, saturation: 30, value: 30)
 
-  test "Apply operate `+` to color":
-    myColor.hue += 20
-    check myColor == tColor(hue: 40, saturation: 30, value: 30)
-
-    myColor.saturation += 20
-    check myColor == tColor(hue: 40, saturation: 50, value: 30)
-
-    myColor.value += 20
-    check myColor == tColor(hue: 40, saturation: 50, value: 50)
+suite "hex converter":
+  test "tColor to tHEX":
+    let myColor: tColor = turquoise
+    check myColor.hex == "#40e0d0"
   
-  test "Apply operate `-` to color":
-    myColor.hue -= 20
-    check myColor == tColor(hue: 0, saturation: 30, value: 30)
-
-    myColor.saturation -= 20
-    check myColor == tColor(hue: 0, saturation: 10, value: 30)
-
-    myColor.value -= 20
-    check myColor == tColor(hue: 0, saturation: 10, value: 10)
+  test "tRGB to tHex":
+    let
+      rgb: tRGB = turquoise.rgb
+      right = newRGB(64.0, 224.0, 208.0)
+    check rgb == right

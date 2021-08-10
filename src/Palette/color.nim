@@ -1,7 +1,7 @@
-import strformat, strutils
+import strformat, math, strutils
 
 type
-  tPercentage = range[0.0..100.0]
+  tPercentage* = range[0.0..100.0]
   tBinaryRange* = range[0.0..255.0]
   tHue* = range[0.0..360.0]
   tRGB* = tuple[red: tBinaryRange, green: tBinaryRange, blue: tBinaryRange]
@@ -11,12 +11,18 @@ type
   tColor* = object
     hsv*: tHSV
 
-proc cmyk* (color: tColor): tCMYK
+proc cmyk* (hsv: tHSV): tCMYK
 proc cmyk* (rgb: tRGB): tCMYK
+proc cmyk* (hex: string): tCMYK
 proc hsv* (rgb: tRGB): tHSV
 proc hsv* (cmyk: tCMYK): tHSV
-proc rgb* (color: tColor): tRGB
+proc hsv* (hex: string): tHSV
 proc rgb* (cmyk: tCMYK): tRGB
+proc rgb* (hsv: tHSV): tRGB
+proc rgb* (hex: string): tRGB
+proc hex* (hsv: tHSV): string
+proc hex* (rgb: tRGB): string
+proc hex* (cmyk: tCMYK): string
 
 proc newColor* (hue: tHue, saturation, value: tBinaryRange): tColor =
   let hsv: tHSV = (hue, saturation, value)
@@ -25,14 +31,38 @@ proc newColor* (hue: tHue, saturation, value: tBinaryRange): tColor =
 proc newColor* (rgb: tRGB): tColor =
   result = tColor(hsv: hsv(rgb))
 
-proc `$`* (color: tColor): string =
-  var
-    (red, green, blue) = rgb(color)
-  result = fmt"""#{red.int.toHex(2)}{green.int.toHex(2)}{blue.int.toHex(2)}"""
+proc newRGB* (red, green, blue: tBinaryRange): tRGB =
+  let rgb: tRGB = (red: red, green: green, blue: blue)
+  result = rgb
 
+proc `+`* (left, right: tBinaryRange): tBinaryRange = (left.float + right.float) mod 256
+proc `+`*[T: SomeNumber] (left: T, right: tBinaryRange): tBinaryRange = (left.float + right.float) mod 256
+proc `+`*[T: SomeNumber] (left: tBinaryRange, right: T): tBinaryRange = right + left
 
-proc cmyk* (color: tColor): tCMYK =
-  result = color.rgb.cmyk
+proc `-`* (left, right: tBinaryRange): tBinaryRange = (left.float - right.float) mod 256
+proc `-`*[T: SomeNumber] (left: T, right: tBinaryRange): tBinaryRange = (left.float - right.float) mod 256
+proc `-`*[T: SomeNumber] (left: tBinaryRange, right: T): tBinaryRange = (left.float - right.float) mod 256
+
+proc `*`* (left, right: tBinaryRange): tBinaryRange = (left.float * right.float) mod 256
+proc `*`*[T: SomeNumber] (left: T, right: tBinaryRange): tBinaryRange = (left.float * right.float) mod 256
+proc `*`*[T: SomeNumber] (left: tBinaryRange, right: T): tBinaryRange = right * left
+
+proc `/`* (left, right: tBinaryRange): tBinaryRange = (left.float / right.float) mod 256
+proc `/`*[T: SomeNumber] (left: T, right: tBinaryRange): tBinaryRange = (left.float / right.float) mod 256
+proc `/`*[T: SomeNumber] (left: tBinaryRange, right: T): tBinaryRange = (left.float / right.float) mod 256
+
+proc round* (rgb: tRGB): tRGB =
+  result = newRGB(rgb.red.round, rgb.green.round, rgb.blue.round)
+
+proc `+`* (color: tColor, hsv: tHSV): tColor =
+  let
+    newHue: tHue = color.hsv.hue + hsv.hue
+    newSaturation: tBinaryRange = color.hsv.saturation + hsv.saturation
+    newValue: tBinaryRange = color.hsv.value + hsv.value
+  result = newColor(newHue, newSaturation, newValue)
+
+proc cmyk* (hsv: tHSV): tCMYK =
+  result = hsv.rgb.cmyk
 
 proc cmyk* (rgb: tRGB): tCMYK =
   let
@@ -44,6 +74,9 @@ proc cmyk* (rgb: tRGB): tCMYK =
     magenta: tPercentage = (1-green-keyPlate) / (1-keyPlate) * 100
     yellow: tPercentage = (1-blue-keyPlate) / (1-keyPlate) * 100
   result = (cyan, magenta, yellow, keyPlate)
+
+proc cmyk* (hex: string): tCMYK =
+  result = hex.rgb.cmyk
 
 proc hsv* (rgb: tRGB): tHSV =
   let
@@ -71,6 +104,9 @@ proc hsv* (rgb: tRGB): tHSV =
 proc hsv* (cmyk: tCMYK): tHSV =
   result = cmyk.rgb.hsv
 
+proc hsv* (hex: string): tHSV =
+  result = hex.rgb.hsv
+
 proc rgb* (cmyk: tCMYK): tRGB =
   let
     red: tBinaryRange = (1 - min(1, cmyk.cyan / 100 * (1 - cmyk.keyPlate) + cmyk.keyPlate)) * 255.0
@@ -78,14 +114,13 @@ proc rgb* (cmyk: tCMYK): tRGB =
     blue: tBinaryRange = (1 - min(1, cmyk.yellow / 100 * (1 - cmyk.keyPlate) + cmyk.keyPlate)) * 255.0
   result = (red, green, blue)
 
-proc rgb* (color: tColor): tRGB =
+proc rgb* (hsv: tHSV): tRGB =
   var
-    maxElem = color.hsv.value
-    minElem = maxElem - ((color.hsv.saturation / 255) * maxElem)
-    hue = color.hsv.hue
-    red: tBinaryRange
-    green: tBinaryRange
-    blue: tBinaryRange
+    maxElem = hsv.value
+    minElem = maxElem - ((hsv.saturation / 255) * maxElem)
+    hue = hsv.hue
+    red, green, blue: tBinaryRange
+  
   if 0 <= hue and hue < 60:
     red = maxElem
     green = (hue / 60) * (maxElem - minElem) + minElem
@@ -110,4 +145,22 @@ proc rgb* (color: tColor): tRGB =
     red = maxElem
     green = minElem
     blue = ((360 - hue) / 60) * (maxElem - minElem) + minElem
+
   result = (red, green, blue)
+
+proc rgb* (hex: string): tRGB =
+  let
+    red: tBinaryRange = hex[1..2].parseFloat
+    green: tBinaryRange = hex[3..4].parseFloat
+    blue: tBinaryRange = hex[5..6].parseFloat
+  result = newRGB(red, green, blue)
+
+proc hex* (hsv: tHSV): string =
+  result = hsv.rgb.hex
+
+proc hex* (rgb: tRGB): string =
+  var (red, green, blue) = rgb
+  result = fmt"""#{red.int.toHex(2)}{green.int.toHex(2)}{blue.int.toHex(2)}"""
+
+proc hex* (cmyk: tCMYK): string =
+  result = cmyk.rgb.hex
