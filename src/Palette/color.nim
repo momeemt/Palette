@@ -35,6 +35,22 @@ proc newRGB* (red, green, blue: tBinaryRange): tRGB =
   let rgb: tRGB = (red: red, green: green, blue: blue)
   result = rgb
 
+proc `+`* (left, right: tBinaryRange): tBinaryRange = (left.float + right.float) mod 256
+proc `+`*[T: SomeNumber] (left: T, right: tBinaryRange): tBinaryRange = (left.float + right.float) mod 256
+proc `+`*[T: SomeNumber] (left: tBinaryRange, right: T): tBinaryRange = right + left
+
+proc `-`* (left, right: tBinaryRange): tBinaryRange = (left.float - right.float) mod 256
+proc `-`*[T: SomeNumber] (left: T, right: tBinaryRange): tBinaryRange = (left.float - right.float) mod 256
+proc `-`*[T: SomeNumber] (left: tBinaryRange, right: T): tBinaryRange = (left.float - right.float) mod 256
+
+proc `*`* (left, right: tBinaryRange): tBinaryRange = (left.float * right.float) mod 256
+proc `*`*[T: SomeNumber] (left: T, right: tBinaryRange): tBinaryRange = (left.float * right.float) mod 256
+proc `*`*[T: SomeNumber] (left: tBinaryRange, right: T): tBinaryRange = right * left
+
+proc `/`* (left, right: tBinaryRange): tBinaryRange = (left.float / right.float) mod 256
+proc `/`*[T: SomeNumber] (left: T, right: tBinaryRange): tBinaryRange = (left.float / right.float) mod 256
+proc `/`*[T: SomeNumber] (left: tBinaryRange, right: T): tBinaryRange = (left.float / right.float) mod 256
+
 proc round* (rgb: tRGB): tRGB =
   result = newRGB(rgb.red.round, rgb.green.round, rgb.blue.round)
 
