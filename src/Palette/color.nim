@@ -150,9 +150,9 @@ proc rgb* (hsv: tHSV): tRGB =
 
 proc rgb* (hex: string): tRGB =
   let
-    red: tBinaryRange = hex[1..2].parseFloat
-    green: tBinaryRange = hex[3..4].parseFloat
-    blue: tBinaryRange = hex[5..6].parseFloat
+    red: tBinaryRange = hex[1..2].parseHexInt.tBinaryRange
+    green: tBinaryRange = hex[3..4].parseHexInt.tBinaryRange
+    blue: tBinaryRange = hex[5..6].parseHexInt.tBinaryRange
   result = newRGB(red, green, blue)
 
 proc hex* (hsv: tHSV): string =
